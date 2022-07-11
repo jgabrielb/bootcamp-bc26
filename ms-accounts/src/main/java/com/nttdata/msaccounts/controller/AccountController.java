@@ -15,29 +15,35 @@ public class AccountController {
     AccountService service;
 
     @GetMapping("/findAll")
-    public Flux<Account> getCustomers(){
+    public Flux<Account> getAccounts(){
         return service.findAll();
     }
 
     @GetMapping("/find/{id}")
-    public Mono<Account> getCustomer(@PathVariable String id){
+    public Mono<Account> getAccount(@PathVariable String id){
         Mono<Account> newAccount = service.findById(id);
         return newAccount;
     }
-
+    /*
+    @GetMapping("/findWithCustomer/{id}")
+    public Mono<Account> getAccountWithCustomer(@PathVariable String id){
+        Mono<Account> newAccount = service.findByIdWithCostumer(id);
+        return newAccount;
+    }
+*/
     @PostMapping("/create")
-    public Mono<Account> createCustomer(@RequestBody Account a){
+    public Mono<Account> createAccount(@RequestBody Account a){
         Mono<Account> newAccount = service.save(a);
         return newAccount;
     }
 
     @PutMapping("/update/{id}")
-    public Mono<Account> updateCustomer(@RequestBody Account a, @PathVariable String id){
+    public Mono<Account> updateAccount(@RequestBody Account a, @PathVariable String id){
         return service.update(a,id);
     }
 
     @DeleteMapping("/delete/{id}")
-    public Mono<Account> deleteCustomer(@PathVariable String id){
+    public Mono<Account> deleteAccount(@PathVariable String id){
         return service.delete(id);
     }
 }

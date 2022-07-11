@@ -1,6 +1,7 @@
 package com.nttdata.msaccounts.service.impl;
 
 import com.nttdata.msaccounts.model.Account;
+import com.nttdata.msaccounts.model.Customer;
 import com.nttdata.msaccounts.repository.AccountRepository;
 import com.nttdata.msaccounts.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class AccountServiceImpl implements AccountService {
                     x.setMovementActually(a.getMovementActually());
                     x.setCreditLimits(a.getCreditLimits());
                     x.setCreditActually(a.getCreditActually());
-                    //x.setMovementDate(a.getMovementDate());
+                    x.setMovementDate(a.getMovementDate());
                     return x;
                 }).flatMap(repository::save);
     }
@@ -49,4 +50,18 @@ public class AccountServiceImpl implements AccountService {
     public Mono<Account> delete(String id) {
         return repository.findById(id).flatMap( x -> repository.delete(x).then(Mono.just(new Account())));
     }
+    /*
+    @Override
+    public Mono<Account> findByIdWithCostumer(String id) {
+        return repository.findById(id).map( x -> {
+            Mono<Customer> c = customerClient.getCustomer(x.getCustomerId());
+            c.map( y -> {
+                x.setCustomer(y);
+                return y;
+            });
+            return x;
+        });
+    }
+
+     */
 }
