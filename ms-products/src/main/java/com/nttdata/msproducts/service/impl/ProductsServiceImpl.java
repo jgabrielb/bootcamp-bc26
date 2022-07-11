@@ -33,10 +33,10 @@ public class ProductsServiceImpl implements ProductsService {
 
         return repository.findById(id)
                 .map( x -> {
-                    x.setIndicatorProducts(c.getIndicatorProducts());
-                    x.setDescindicatorProducts(c.getDescindicatorProducts());
-                    x.setTypeProducts(c.getTypeProducts());
-                    x.setDescTypeProducts(c.getDescTypeProducts());
+                    x.setIndProduct(c.getIndProduct());
+                    x.setDescIndProduct(c.getDescIndProduct());
+                    x.setTypeProduct(c.getTypeProduct());
+                    x.setDescTypeProduct(c.getDescTypeProduct());
                     return x;
                 }).flatMap(repository::save);
     }
