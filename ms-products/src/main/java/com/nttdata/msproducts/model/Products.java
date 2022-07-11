@@ -13,7 +13,7 @@ import org.springframework.data.annotation.Id;
 public class Products {
 
     @Id
-    private Long id;
+    private String id;
 
     private String indicatorProducts;
 
