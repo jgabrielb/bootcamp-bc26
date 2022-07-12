@@ -1,5 +1,6 @@
 package com.nttdata.msaccounts.service.impl;
 
+import com.nttdata.msaccounts.client.CustomerClient;
 import com.nttdata.msaccounts.model.Account;
 import com.nttdata.msaccounts.model.Customer;
 import com.nttdata.msaccounts.repository.AccountRepository;
@@ -14,6 +15,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     AccountRepository repository;
+
+    @Autowired
+    CustomerClient customerClient;
 
     @Override
     public Flux<Account> findAll() {
@@ -50,18 +54,12 @@ public class AccountServiceImpl implements AccountService {
     public Mono<Account> delete(String id) {
         return repository.findById(id).flatMap( x -> repository.delete(x).then(Mono.just(new Account())));
     }
-    /*
+
     @Override
     public Mono<Account> findByIdWithCostumer(String id) {
         return repository.findById(id).map( x -> {
-            Mono<Customer> c = customerClient.getCustomer(x.getCustomerId());
-            c.map( y -> {
-                x.setCustomer(y);
-                return y;
-            });
+            x.setCustomer(customerClient.getCustomer(x.getCustomerId()).block());
             return x;
         });
     }
-
-     */
 }

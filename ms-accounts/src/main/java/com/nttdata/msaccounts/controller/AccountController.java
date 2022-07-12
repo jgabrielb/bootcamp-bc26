@@ -24,13 +24,11 @@ public class AccountController {
         Mono<Account> newAccount = service.findById(id);
         return newAccount;
     }
-    /*
     @GetMapping("/findWithCustomer/{id}")
     public Mono<Account> getAccountWithCustomer(@PathVariable String id){
         Mono<Account> newAccount = service.findByIdWithCostumer(id);
         return newAccount;
     }
-*/
     @PostMapping("/create")
     public Mono<Account> createAccount(@RequestBody Account a){
         Mono<Account> newAccount = service.save(a);
