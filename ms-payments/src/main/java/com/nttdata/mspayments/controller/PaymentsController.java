@@ -8,7 +8,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/deposits")
+@RequestMapping("/payments")
 public class PaymentsController {
     @Autowired
     private PaymentsService service;
