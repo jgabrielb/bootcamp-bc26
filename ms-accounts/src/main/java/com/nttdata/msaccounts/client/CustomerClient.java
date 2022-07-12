@@ -1,6 +1,6 @@
 package com.nttdata.msaccounts.client;
 
-import com.nttdata.msaccounts.model.Customer;
+import com.nttdata.msaccounts.controller.model.Customer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;

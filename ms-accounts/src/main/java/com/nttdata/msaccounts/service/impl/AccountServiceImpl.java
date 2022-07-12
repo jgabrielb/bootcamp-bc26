@@ -1,8 +1,7 @@
 package com.nttdata.msaccounts.service.impl;
 
 import com.nttdata.msaccounts.client.CustomerClient;
-import com.nttdata.msaccounts.model.Account;
-import com.nttdata.msaccounts.model.Customer;
+import com.nttdata.msaccounts.controller.model.Account;
 import com.nttdata.msaccounts.repository.AccountRepository;
 import com.nttdata.msaccounts.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;

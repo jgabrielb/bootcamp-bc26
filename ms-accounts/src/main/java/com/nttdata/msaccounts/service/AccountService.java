@@ -1,6 +1,6 @@
 package com.nttdata.msaccounts.service;
 
-import com.nttdata.msaccounts.model.Account;
+import com.nttdata.msaccounts.controller.model.Account;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
