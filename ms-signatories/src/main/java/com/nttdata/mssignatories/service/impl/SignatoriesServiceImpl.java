@@ -35,6 +35,7 @@ public class SignatoriesServiceImpl implements SignatoriesService {
                     x.setFirstName(c.getFirstName());
                     x.setLastName(c.getLastName());
                     x.setDocNumber(c.getDocNumber());
+                    x.setAccountId(c.getAccountId());
                     return x;
                 }).flatMap(repository::save);
     }

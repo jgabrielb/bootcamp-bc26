@@ -20,4 +20,8 @@ public class Payments {
     private LocalDate paymentDate;
     private BigDecimal paymentAmount;
     private String description;
+
+    private String currency;
+
+    private String accountId;
 }

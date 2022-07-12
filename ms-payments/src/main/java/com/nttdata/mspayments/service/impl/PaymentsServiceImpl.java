@@ -35,6 +35,8 @@ public class PaymentsServiceImpl implements PaymentsService {
                     x.setPaymentDate(c.getPaymentDate());
                     x.setPaymentAmount(c.getPaymentAmount());
                     x.setDescription(c.getDescription());
+                    x.setCurrency(c.getCurrency());
+                    x.setAccountId(c.getAccountId());
                     return x;
                 }).flatMap(repository::save);
     }

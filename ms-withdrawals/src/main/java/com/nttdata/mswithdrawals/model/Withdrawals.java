@@ -20,5 +20,6 @@ public class Withdrawals {
     private LocalDate withdrawalsDate;
 
     private BigDecimal withdrawalsAmount ;
-    private String description;
+    private String currency;
+    private String accountId;
 }

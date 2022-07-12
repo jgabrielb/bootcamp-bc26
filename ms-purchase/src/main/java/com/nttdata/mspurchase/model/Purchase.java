@@ -21,4 +21,6 @@ public class Purchase {
 
     private BigDecimal purchaseAmount;
     private String description;
+    private String currency;
+    private String accountId;
 }

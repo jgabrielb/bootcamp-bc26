@@ -12,4 +12,6 @@ public class Signatories {
     private String firstName;
     private String lastName;
     private String docNumber;
+
+    private String accountId;
 }

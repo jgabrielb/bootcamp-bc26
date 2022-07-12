@@ -34,7 +34,8 @@ public class WithdrawalsServiceImpl implements WithdrawalsService {
                 .map( x -> {
                     x.setWithdrawalsDate(c.getWithdrawalsDate());
                     x.setWithdrawalsAmount(c.getWithdrawalsAmount());
-                    x.setDescription(c.getDescription());
+                    x.setCurrency(c.getCurrency());
+                    x.setAccountId(c.getAccountId());
                     return x;
                 }).flatMap(repository::save);
     }

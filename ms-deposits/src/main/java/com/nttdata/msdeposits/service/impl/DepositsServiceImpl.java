@@ -34,7 +34,8 @@ public class DepositsServiceImpl implements DepositsService{
                 .map( x -> {
                     x.setDepositDate(c.getDepositDate());
                     x.setDepositAmount(c.getDepositAmount());
-                    x.setDescription(c.getDescription());
+                    x.setCurrency(c.getCurrency());
+                    x.setAccountId(c.getAccountId());
                     return x;
                 }).flatMap(repository::save);
     }

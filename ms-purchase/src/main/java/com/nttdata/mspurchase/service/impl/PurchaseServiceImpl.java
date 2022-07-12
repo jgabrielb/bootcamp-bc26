@@ -35,6 +35,8 @@ public class PurchaseServiceImpl implements PurchaseService {
                     x.setPurchaseDate(c.getPurchaseDate());
                     x.setPurchaseAmount(c.getPurchaseAmount());
                     x.setDescription(c.getDescription());
+                    x.setCurrency(c.getCurrency());
+                    x.setAccountId(c.getAccountId());
                     return x;
                 }).flatMap(repository::save);
     }

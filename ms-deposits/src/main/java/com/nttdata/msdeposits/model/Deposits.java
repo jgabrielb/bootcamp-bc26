@@ -20,5 +20,7 @@ public class Deposits {
     private LocalDate depositDate;
 
     private BigDecimal depositAmount ;
-    private String description;
+    private String currency;
+
+    private String accountId;
 }
