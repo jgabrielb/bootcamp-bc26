@@ -6,11 +6,15 @@ import com.nttdata.mscustomers.service.CustomerService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
+@Transactional
 public class CustomerServiceImpl implements CustomerService {
 
     private static Logger logger = LogManager.getLogger(CustomerServiceImpl.class);
@@ -40,19 +44,21 @@ public class CustomerServiceImpl implements CustomerService {
     public Mono<Customer> update(Customer c, String id) {
         logger.info("executing update method");
         return repository.findById(id)
-                .map( x -> {
+                .flatMap( x -> {
                             x.setFirstName(c.getFirstName());
                             x.setLastName(c.getLastName());
                             x.setDocNumber(c.getDocNumber());
                             x.setTypeCustomer(c.getTypeCustomer());
                             x.setDescTypeCustomer(c.getDescTypeCustomer());
-                            return x;
-                }).flatMap(repository::save);
+                            return repository.save(x);
+                });
     }
 
     @Override
     public Mono<Customer> delete(String id) {
         logger.info("executing delete method");
-        return repository.findById(id).flatMap( x -> repository.delete(x).then(Mono.just(new Customer())));
+        return repository.findById(id)
+                .flatMap( x -> repository.delete(x)
+                        .then(Mono.just(x)));
     }
 }

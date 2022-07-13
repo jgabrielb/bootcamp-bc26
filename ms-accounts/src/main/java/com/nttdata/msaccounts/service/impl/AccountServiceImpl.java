@@ -11,10 +11,12 @@ import com.nttdata.msaccounts.repository.AccountRepository;
 import com.nttdata.msaccounts.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
+@Transactional
 public class AccountServiceImpl implements AccountService {
 
     private static Logger logger = LogManager.getLogger(AccountServiceImpl.class);
@@ -112,7 +114,7 @@ public class AccountServiceImpl implements AccountService {
     public Mono<Account> update(Account a, String id) {
         logger.info("Executing update method");
         return repository.findById(id)
-                .map( x -> {
+                .flatMap( x -> {
                     x.setProductId(a.getProductId());
                     x.setAccountNumber(a.getAccountNumber());
                     x.setAccountNumberInt(a.getAccountNumberInt());
@@ -121,14 +123,16 @@ public class AccountServiceImpl implements AccountService {
                     x.setCreditLimits(a.getCreditLimits());
                     x.setCreditActually(a.getCreditActually());
                     x.setMovementDate(a.getMovementDate());
-                    return x;
-                }).flatMap(repository::save);
+                    return repository.save(x);
+                });
     }
 
     @Override
     public Mono<Account> delete(String id) {
         logger.info("Executing delete method");
-        return repository.findById(id).flatMap( x -> repository.delete(x).then(Mono.just(new Account())));
+        return repository.findById(id)
+                .flatMap( x -> repository.delete(x)
+                        .then(Mono.just(x)));
     }
 
     @Override

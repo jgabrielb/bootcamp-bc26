@@ -7,10 +7,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
+@Transactional
 public class WithdrawalsServiceImpl implements WithdrawalsService {
 
     private static Logger logger = LogManager.getLogger(WithdrawalsServiceImpl.class);
@@ -40,18 +42,20 @@ public class WithdrawalsServiceImpl implements WithdrawalsService {
     public Mono<Withdrawals> update(Withdrawals c, String id) {
         logger.info("Executing update method");
         return repository.findById(id)
-                .map( x -> {
+                .flatMap( x -> {
                     x.setWithdrawalsDate(c.getWithdrawalsDate());
                     x.setWithdrawalsAmount(c.getWithdrawalsAmount());
                     x.setCurrency(c.getCurrency());
                     x.setAccountId(c.getAccountId());
-                    return x;
-                }).flatMap(repository::save);
+                    return repository.save(x);
+                });
     }
 
     @Override
     public Mono<Withdrawals> delete(String id) {
         logger.info("Executing delete method");
-        return repository.findById(id).flatMap( x -> repository.delete(x).then(Mono.just(new Withdrawals())));
+        return repository.findById(id)
+                .flatMap( x -> repository.delete(x)
+                        .then(Mono.just(x)));
     }
 }

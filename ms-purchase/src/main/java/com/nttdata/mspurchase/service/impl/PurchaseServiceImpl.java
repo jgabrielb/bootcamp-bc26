@@ -7,10 +7,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
+@Transactional
 public class PurchaseServiceImpl implements PurchaseService {
 
     private static Logger logger = LogManager.getLogger(PurchaseServiceImpl.class);
@@ -40,19 +42,21 @@ public class PurchaseServiceImpl implements PurchaseService {
     public Mono<Purchase> update(Purchase c, String id) {
         logger.info("Executing update method");
         return repository.findById(id)
-                .map( x -> {
+                .flatMap( x -> {
                     x.setPurchaseDate(c.getPurchaseDate());
                     x.setPurchaseAmount(c.getPurchaseAmount());
                     x.setDescription(c.getDescription());
                     x.setCurrency(c.getCurrency());
                     x.setAccountId(c.getAccountId());
-                    return x;
-                }).flatMap(repository::save);
+                    return repository.save(x);
+                });
     }
 
     @Override
     public Mono<Purchase> delete(String id) {
         logger.info("Executing delete method");
-        return repository.findById(id).flatMap( x -> repository.delete(x).then(Mono.just(new Purchase())));
+        return repository.findById(id)
+                .flatMap( x -> repository.delete(x)
+                        .then(Mono.just(x)));
     }
 }
