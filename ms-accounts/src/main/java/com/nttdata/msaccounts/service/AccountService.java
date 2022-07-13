@@ -1,11 +1,13 @@
 package com.nttdata.msaccounts.service;
 
-import com.nttdata.msaccounts.controller.model.Account;
+import com.nttdata.msaccounts.model.Account;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface AccountService {
     Flux<Account> findAll();
+
+    Flux<Account> findAllWithDetail();
 
     Mono<Account> save(Account a);
 

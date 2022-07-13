@@ -1,6 +1,6 @@
 package com.nttdata.msaccounts.client;
 
-import com.nttdata.msaccounts.controller.model.Customer;
+import com.nttdata.msaccounts.model.Customer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -11,11 +11,10 @@ public class CustomerClient {
 
     public Mono<Customer> getCustomer(String id){
       return client.get()
-              .uri("/find/"+id)
-              /*.uri(uriBuilder -> uriBuilder
+              .uri(uriBuilder -> uriBuilder
                       .path("/find/{id}")
-                      .build(id))
-               */
+                      .build(id)
+              )
               .retrieve()
               .bodyToMono(Customer.class);
     };

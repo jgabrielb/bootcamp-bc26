@@ -1,6 +1,7 @@
-package com.nttdata.msaccounts.controller.model;
+package com.nttdata.msaccounts.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 
 @Data
 @Document(collection = "schema_suscribe.accounts")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Account {
     @Id
     private String id;
@@ -40,4 +42,7 @@ public class Account {
 
     @Transient
     private Customer customer;
+
+    @Transient
+    private Product product;
 }

@@ -1,6 +1,6 @@
 package com.nttdata.msaccounts.controller;
 
-import com.nttdata.msaccounts.controller.model.Account;
+import com.nttdata.msaccounts.model.Account;
 import com.nttdata.msaccounts.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +18,9 @@ public class AccountController {
     public Flux<Account> getAccounts(){
         return service.findAll();
     }
+
+    @GetMapping("/findAllWithDetail")
+    public Flux<Account> getAccountsDetailed(){ return service.findAllWithDetail();}
 
     @GetMapping("/find/{id}")
     public Mono<Account> getAccount(@PathVariable String id){

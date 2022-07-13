@@ -1,4 +1,4 @@
-package com.nttdata.msaccounts.controller.model;
+package com.nttdata.msaccounts.model;
 
 import lombok.Data;
 
