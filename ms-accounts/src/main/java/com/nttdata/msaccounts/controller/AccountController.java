@@ -30,12 +30,6 @@ public class AccountController {
         return newAccount.map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
-    @GetMapping("/findWithCustomer/{id}")
-    public Mono<ResponseEntity<Account>> getAccountWithCustomer(@PathVariable String id){
-        Mono<Account> newAccount = service.findByIdWithCostumer(id);
-        return newAccount.map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
-    }
     @GetMapping("/findWithDetailsById/{id}")
     public Mono<ResponseEntity<Account>> getAccountDetailsById(@PathVariable String id){
         Mono<Account> newAccount = service.findByIdWithDetail(id);

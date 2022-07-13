@@ -19,14 +19,4 @@ public class AccountClient {
                 .retrieve()
                 .bodyToMono(Account.class);
     };
-
-    public Mono<Account> getAccount(String id){
-        return client.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/find/{id}")
-                        .build(id)
-                )
-                .retrieve()
-                .bodyToMono(Account.class);
-    }
 }

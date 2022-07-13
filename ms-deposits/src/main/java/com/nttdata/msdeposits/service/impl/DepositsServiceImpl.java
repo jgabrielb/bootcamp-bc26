@@ -38,26 +38,16 @@ public class DepositsServiceImpl implements DepositsService{
     public Mono<Deposits> save(Deposits c) {
         logger.info("Executing save method");
 
-        Mono<Account> nAccount = accountClient.getAccountWithDetails(c.getAccountId())
-                .filter( x -> x.getProduct().getIndProduct() == 1);
-
-
-        nAccount.share().block();
-        /*
-        accountClient.getAccount(c.getAccountId())
+        return accountClient.getAccountWithDetails(c.getAccountId())
                 .filter( x -> x.getProduct().getIndProduct() == 1)
-                .doOnNext( z -> {
-                    System.out.println("y.getId(): "+z.getId());
-                    nAccount.setId(z.getId());
+                .hasElement()
+                .flatMap( y -> {
+                    if(y){
+                        return repository.save(c);
+                    }else{
+                        return Mono.error(new RuntimeException("La cuenta ingresada no es una cuenta bancaria"));
+                    }
                 });
-        */
-
-        if(nAccount != null){
-            return repository.save(c);
-        }else{
-            throw new RuntimeException("La cuenta ingresada no es una cuenta bancaria");
-        }
-
     }
 
     @Override

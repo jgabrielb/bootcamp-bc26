@@ -39,11 +39,18 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Flux<Account> findAllWithDetail() {
         logger.info("Executing findAllWithDetail method");
-        return repository.findAll().map( accounts -> {
-            accounts.setCustomer(customerClient.getCustomer(accounts.getCustomerId()).block());
-            accounts.setProduct(productClient.getProduct(accounts.getProductId()).block());
-            return accounts;
-        });
+        return repository.findAll()
+                .flatMap( x -> {
+                   return customerClient.getCustomer(x.getCustomerId())
+                           .flatMapMany( y -> {
+                               return productClient.getProduct(x.getProductId())
+                                       .flatMapMany( z -> {
+                                           x.setCustomer(y);
+                                           x.setProduct(z);
+                                           return Flux.just(x);
+                                       });
+                           });
+                });
     }
 
     @Override
@@ -51,7 +58,7 @@ public class AccountServiceImpl implements AccountService {
         logger.info("Executing save method");
 
         // Validando si el cliente personal ya posee una cuenta bancaria
-        long valPersonalCustomer = this.findAllWithDetail()
+        Long valPersonalCustomer = this.findAllWithDetail()
                 .filter( x -> x.getCustomerId().equals(a.getCustomerId()))
                 .filter( x -> (x.getProduct().getIndProduct() == 1 && x.getCustomer().getTypeCustomer() == 1) )
                 .count()
@@ -63,7 +70,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         // Validando si el cliente personal ya posee un credito
-        long valPersonalCustomer2 = this.findAllWithDetail()
+        Long valPersonalCustomer2 = this.findAllWithDetail()
                 .filter( x -> x.getCustomerId().equals(a.getCustomerId()))
                 .filter( x -> (x.getProduct().getIndProduct() == 2 && x.getCustomer().getTypeCustomer() == 1) )
                 .count()
@@ -103,11 +110,18 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Mono<Account> findByIdWithDetail(String id) {
         logger.info("Executing findByIdWithDetail method");
-        return repository.findById(id).map( x -> {
-            x.setCustomer(customerClient.getCustomer(x.getCustomerId()).block());
-            x.setProduct(productClient.getProduct(x.getProductId()).block());
-            return x;
-        });
+        return repository.findById(id)
+                .flatMap( x -> {
+                    return customerClient.getCustomer(x.getCustomerId())
+                            .flatMap( y -> {
+                                return productClient.getProduct(x.getProductId())
+                                        .flatMap( z -> {
+                                            x.setCustomer(y);
+                                            x.setProduct(z);
+                                            return Mono.just(x);
+                                        });
+                            });
+                });
     }
 
     @Override
@@ -135,13 +149,4 @@ public class AccountServiceImpl implements AccountService {
                         .then(Mono.just(x)));
     }
 
-    @Override
-    public Mono<Account> findByIdWithCostumer(String id) {
-        logger.info("Executing findByIdWithCostumer method");
-        return repository.findById(id).map( x -> {
-            x.setCustomer(customerClient.getCustomer(x.getCustomerId()).block());
-            x.setProduct(productClient.getProduct(x.getProductId()).block());
-            return x;
-        });
-    }
 }
