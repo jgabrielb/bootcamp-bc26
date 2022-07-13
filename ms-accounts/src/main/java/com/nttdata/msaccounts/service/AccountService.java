@@ -18,4 +18,6 @@ public interface AccountService {
     Mono<Account> delete(String id);
 
     Mono<Account> findByIdWithCostumer(String id);
+
+    Mono<Account> findByIdWithDetail(String id);
 }

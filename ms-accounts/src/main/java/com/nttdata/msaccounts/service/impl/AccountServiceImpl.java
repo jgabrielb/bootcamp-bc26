@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 @Service
 public class AccountServiceImpl implements AccountService {
 
@@ -62,7 +60,18 @@ public class AccountServiceImpl implements AccountService {
             throw new RuntimeException("El cliente personal no puede tener mas de una cuenta bancaria");
         }
 
-        // Validando que si es un cliente empresarial no pueda tener una cuenta de ahorros o plazo fijo
+        // Validando si el cliente personal ya posee un credito
+        long valPersonalCustomer2 = this.findAllWithDetail()
+                .filter( x -> x.getCustomerId().equals(a.getCustomerId()))
+                .filter( x -> (x.getProduct().getIndProduct() == 2 && x.getCustomer().getTypeCustomer() == 1) )
+                .count()
+                .share()
+                .block();
+
+        if (valPersonalCustomer2 > 0) {
+            throw new RuntimeException("El cliente personal no puede tener mas de un credito");
+        }
+
         // Obteniendo los datos del producto solicitado a crear
         Product nProduct = productClient.getProduct(a.getProductId())
                 .filter( y -> (y.getIndProduct() == 1) ) // Validar si el producto es PASIVO
@@ -87,6 +96,16 @@ public class AccountServiceImpl implements AccountService {
     public Mono<Account> findById(String id) {
         logger.info("Executing findById method");
         return repository.findById(id);
+    }
+
+    @Override
+    public Mono<Account> findByIdWithDetail(String id) {
+        logger.info("Executing findByIdWithDetail method");
+        return repository.findById(id).map( x -> {
+            x.setCustomer(customerClient.getCustomer(x.getCustomerId()).block());
+            x.setProduct(productClient.getProduct(x.getProductId()).block());
+            return x;
+        });
     }
 
     @Override
@@ -117,6 +136,7 @@ public class AccountServiceImpl implements AccountService {
         logger.info("Executing findByIdWithCostumer method");
         return repository.findById(id).map( x -> {
             x.setCustomer(customerClient.getCustomer(x.getCustomerId()).block());
+            x.setProduct(productClient.getProduct(x.getProductId()).block());
             return x;
         });
     }

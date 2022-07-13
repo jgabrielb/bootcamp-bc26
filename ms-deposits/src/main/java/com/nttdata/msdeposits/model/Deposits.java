@@ -19,7 +19,8 @@ public class Deposits {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate depositDate;
 
-    private BigDecimal depositAmount ;
+    private BigDecimal depositAmount;
+
     private String currency;
 
     private String accountId;

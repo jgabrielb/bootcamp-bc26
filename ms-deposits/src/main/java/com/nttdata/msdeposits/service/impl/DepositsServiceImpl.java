@@ -1,10 +1,12 @@
 package com.nttdata.msdeposits.service.impl;
 
+import com.nttdata.msdeposits.model.Account;
 import com.nttdata.msdeposits.model.Deposits;
 import com.nttdata.msdeposits.repository.DepositsRepository;
 import com.nttdata.msdeposits.service.DepositsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -13,6 +15,9 @@ public class DepositsServiceImpl implements DepositsService{
     @Autowired
     DepositsRepository repository;
 
+    //@Autowired
+    //AccountClient accountClient;
+
     @Override
     public Flux<Deposits> findAll() {
         return repository.findAll();
@@ -20,7 +25,22 @@ public class DepositsServiceImpl implements DepositsService{
 
     @Override
     public Mono<Deposits> save(Deposits c) {
+        /*
+        Account account = accountClient.getAccountDetails(c.getAccountId())
+                .filter( x -> x.getProduct().getIndProduct() == 1)
+                .share()
+                .block();
+        */
+
+        //Account account = accountClient.getAccountDetails(c.getAccountId());
+
+        //if(account != null){
+        //    return repository.save(c);
+        //}else{
+        //    throw new RuntimeException("no se puede depositar a un cuenta de credito");
+        //}
         return repository.save(c);
+
     }
 
     @Override
