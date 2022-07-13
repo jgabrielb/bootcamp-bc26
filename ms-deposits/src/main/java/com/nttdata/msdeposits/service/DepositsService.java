@@ -4,6 +4,8 @@ import com.nttdata.msdeposits.model.Deposits;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.ExecutionException;
+
 public interface DepositsService {
     Flux<Deposits> findAll();
 

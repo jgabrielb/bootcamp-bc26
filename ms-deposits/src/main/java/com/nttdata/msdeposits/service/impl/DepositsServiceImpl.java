@@ -1,55 +1,72 @@
 package com.nttdata.msdeposits.service.impl;
 
+import com.nttdata.msdeposits.client.AccountClient;
 import com.nttdata.msdeposits.model.Account;
 import com.nttdata.msdeposits.model.Deposits;
 import com.nttdata.msdeposits.repository.DepositsRepository;
 import com.nttdata.msdeposits.service.DepositsService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @Service
 public class DepositsServiceImpl implements DepositsService{
+
+    private static Logger logger = LogManager.getLogger(DepositsServiceImpl.class);
+
     @Autowired
     DepositsRepository repository;
 
-    //@Autowired
-    //AccountClient accountClient;
+    @Autowired
+    AccountClient accountClient;
 
     @Override
     public Flux<Deposits> findAll() {
+        logger.info("Executing findAll method");
         return repository.findAll();
     }
 
     @Override
     public Mono<Deposits> save(Deposits c) {
+        logger.info("Executing save method");
+
+        Mono<Account> nAccount = accountClient.getAccountWithDetails(c.getAccountId())
+                .filter( x -> x.getProduct().getIndProduct() == 1);
+
+
+        nAccount.share().block();
         /*
-        Account account = accountClient.getAccountDetails(c.getAccountId())
+        accountClient.getAccount(c.getAccountId())
                 .filter( x -> x.getProduct().getIndProduct() == 1)
-                .share()
-                .block();
+                .doOnNext( z -> {
+                    System.out.println("y.getId(): "+z.getId());
+                    nAccount.setId(z.getId());
+                });
         */
 
-        //Account account = accountClient.getAccountDetails(c.getAccountId());
-
-        //if(account != null){
-        //    return repository.save(c);
-        //}else{
-        //    throw new RuntimeException("no se puede depositar a un cuenta de credito");
-        //}
-        return repository.save(c);
+        if(nAccount != null){
+            return repository.save(c);
+        }else{
+            throw new RuntimeException("La cuenta ingresada no es una cuenta bancaria");
+        }
 
     }
 
     @Override
     public Mono<Deposits> findById(String id) {
+        logger.info("Executing findById method");
         return repository.findById(id);
     }
 
     @Override
     public Mono<Deposits> update(Deposits c, String id) {
+        logger.info("Executing update method");
         return repository.findById(id)
                 .map( x -> {
                     x.setDepositDate(c.getDepositDate());
@@ -62,6 +79,7 @@ public class DepositsServiceImpl implements DepositsService{
 
     @Override
     public Mono<Deposits> delete(String id) {
+        logger.info("Executing delete method");
         return repository.findById(id).flatMap( x -> repository.delete(x).then(Mono.just(new Deposits())));
     }
 }
