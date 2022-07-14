@@ -1,5 +1,6 @@
 package com.nttdata.mspurchase.service.impl;
 
+import com.nttdata.mspurchase.client.AccountClient;
 import com.nttdata.mspurchase.model.Purchase;
 import com.nttdata.mspurchase.repository.PurchaseRepository;
 import com.nttdata.mspurchase.service.PurchaseService;
@@ -11,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 @Service
 @Transactional
 public class PurchaseServiceImpl implements PurchaseService {
@@ -19,6 +22,9 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Autowired
     PurchaseRepository repository;
+
+    @Autowired
+    AccountClient accountClient;
 
     @Override
     public Flux<Purchase> findAll() {
@@ -29,7 +35,18 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public Mono<Purchase> save(Purchase c) {
         logger.info("Executing save method");
-        return repository.save(c);
+        return accountClient.getAccountWithDetails(c.getAccountId())
+                .filter( x -> x.getProduct().getIndProduct() == 2) // Validar que el producto sea de tipo Activo
+                .filter(x -> x.getProduct().getTypeProduct() == 3) // Validar que el producto sea de Tarjeta de Crédito
+                .filter(x -> x.getCreditActually().compareTo(c.getPurchaseAmount()) >= 0 ) //validar que el credito actual sea mayor o igual al monto de la compra
+                .hasElement()
+                .flatMap( y -> {
+                    if(y){
+                        return repository.save(c);
+                    }else{
+                        return Mono.error(new RuntimeException("Verificar que sea una tarjeta de crédito y que el monto de la compra no sobre pase el limite del credito"));
+                    }
+                });
     }
 
     @Override

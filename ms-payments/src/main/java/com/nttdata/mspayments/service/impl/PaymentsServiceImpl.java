@@ -1,5 +1,6 @@
 package com.nttdata.mspayments.service.impl;
 
+import com.nttdata.mspayments.client.AccountClient;
 import com.nttdata.mspayments.model.Payments;
 import com.nttdata.mspayments.repository.PaymentsRepository;
 import com.nttdata.mspayments.service.PaymentsService;
@@ -20,6 +21,10 @@ public class PaymentsServiceImpl implements PaymentsService {
     @Autowired
     PaymentsRepository repository;
 
+
+    @Autowired
+    AccountClient accountClient;
+
     @Override
     public Flux<Payments> findAll() {
         logger.info("Executing findAll method");
@@ -29,7 +34,16 @@ public class PaymentsServiceImpl implements PaymentsService {
     @Override
     public Mono<Payments> save(Payments c) {
         logger.info("Executing save method");
-        return repository.save(c);
+        return accountClient.getAccountWithDetails(c.getAccountId())
+                .filter( x -> x.getProduct().getIndProduct() == 2)
+                .hasElement()
+                .flatMap( y -> {
+                    if(y){
+                        return repository.save(c);
+                    }else{
+                        return Mono.error(new RuntimeException("La cuenta debe ser de crédito"));
+                    }
+                });
     }
 
     @Override

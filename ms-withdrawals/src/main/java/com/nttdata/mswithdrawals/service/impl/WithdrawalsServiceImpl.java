@@ -1,5 +1,6 @@
 package com.nttdata.mswithdrawals.service.impl;
 
+import com.nttdata.mswithdrawals.client.AccountClient;
 import com.nttdata.mswithdrawals.model.Withdrawals;
 import com.nttdata.mswithdrawals.repository.WithdrawalsRepository;
 import com.nttdata.mswithdrawals.service.WithdrawalsService;
@@ -20,6 +21,9 @@ public class WithdrawalsServiceImpl implements WithdrawalsService {
     @Autowired
     WithdrawalsRepository repository;
 
+    @Autowired
+    AccountClient accountClient;
+
     @Override
     public Flux<Withdrawals> findAll() {
         logger.info("Executing findAll method");
@@ -29,7 +33,16 @@ public class WithdrawalsServiceImpl implements WithdrawalsService {
     @Override
     public Mono<Withdrawals> save(Withdrawals c) {
         logger.info("Executing save method");
-        return repository.save(c);
+        return accountClient.getAccountWithDetails(c.getAccountId())
+                .filter( x -> x.getProduct().getIndProduct() == 1)
+                .hasElement()
+                .flatMap( y -> {
+                    if(y){
+                        return repository.save(c);
+                    }else{
+                        return Mono.error(new RuntimeException("La cuenta ingresada no es una cuenta bancaria"));
+                    }
+                });
     }
 
     @Override
