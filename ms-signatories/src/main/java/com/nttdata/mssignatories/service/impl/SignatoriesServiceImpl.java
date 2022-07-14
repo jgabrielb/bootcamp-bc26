@@ -1,5 +1,6 @@
 package com.nttdata.mssignatories.service.impl;
 
+import com.nttdata.mssignatories.client.AccountClient;
 import com.nttdata.mssignatories.model.Signatories;
 import com.nttdata.mssignatories.repository.SignatoriesRepository;
 import com.nttdata.mssignatories.service.SignatoriesService;
@@ -20,6 +21,9 @@ public class SignatoriesServiceImpl implements SignatoriesService {
     @Autowired
     SignatoriesRepository repository;
 
+    @Autowired
+    AccountClient accountClient;
+
     @Override
     public Flux<Signatories> findAll() {
         logger.info("Executing findAll method");
@@ -29,7 +33,17 @@ public class SignatoriesServiceImpl implements SignatoriesService {
     @Override
     public Mono<Signatories> save(Signatories c) {
         logger.info("Executing save method");
-        return repository.save(c);
+        return accountClient.getAccountWithDetails(c.getAccountId())
+                .filter( x -> x.getProduct().getIndProduct() == 1)
+                .filter(z -> z.getCustomer().getTypeCustomer() == 2)
+                .hasElement()
+                .flatMap( y -> {
+                    if(y){
+                        return repository.save(c);
+                    }else{
+                        return Mono.error(new RuntimeException("La cuenta ingresada no es una cuenta bancaria empresarial"));
+                    }
+                });
     }
 
     @Override
