@@ -34,3 +34,4 @@ build/
 
 ### Adittional files ###
 *.log
+.log
