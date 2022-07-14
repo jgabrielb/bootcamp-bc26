@@ -57,48 +57,42 @@ public class AccountServiceImpl implements AccountService {
     public Mono<Account> save(Account a) {
         logger.info("Executing save method");
 
-        // Validando si el cliente personal ya posee una cuenta bancaria
-        Long valPersonalCustomer = this.findAllWithDetail()
-                .filter( x -> x.getCustomerId().equals(a.getCustomerId()))
-                .filter( x -> (x.getProduct().getIndProduct() == 1 && x.getCustomer().getTypeCustomer() == 1) )
-                .count()
-                .share()
-                .block();
-
-        if (valPersonalCustomer > 0) {
-            throw new RuntimeException("El cliente personal no puede tener mas de una cuenta bancaria");
-        }
-
-        // Validando si el cliente personal ya posee un credito
-        Long valPersonalCustomer2 = this.findAllWithDetail()
-                .filter( x -> x.getCustomerId().equals(a.getCustomerId()))
-                .filter( x -> (x.getProduct().getIndProduct() == 2 && x.getCustomer().getTypeCustomer() == 1) )
-                .count()
-                .share()
-                .block();
-
-        if (valPersonalCustomer2 > 0) {
-            throw new RuntimeException("El cliente personal no puede tener mas de un credito");
-        }
-
-        // Obteniendo los datos del producto solicitado a crear
-        Product nProduct = productClient.getProduct(a.getProductId())
-                .filter( y -> (y.getIndProduct() == 1) ) // Validar si el producto es PASIVO
-                .filter( y -> (y.getTypeProduct() == 1 || y.getTypeProduct() == 3) ) // Validar si es cuenta de ahorros o plazo fijo
-                .share()
-                .block();
-
-        // Obteniendo los datos del cliente solicitante
-        Customer nCustomer = customerClient.getCustomer(a.getCustomerId())
-                .filter( (z -> z.getTypeCustomer() == 2) ) // Validar si el customerId es empresarial
-                .share()
-                .block();
-
-        if (nProduct != null && nCustomer != null) {
-            throw new RuntimeException("El cliente empresarial no puede tener una cuenta de ahorros o plazo fijo");
-        }
-
-        return repository.save(a);
+        return this.findAllWithDetail()
+                .filter( x -> x.getCustomerId().equals(a.getCustomerId())) // Buscamos el customerId de la lista
+                .filter( x -> (x.getProduct().getIndProduct() == 1 && x.getCustomer().getTypeCustomer() == 1) && (x.getProduct().getId().equals(a.getProductId())) ) // Buscamos si tiene una cuenta bancaria y es cliente personal
+                .hasElements()
+                .flatMap( v -> {
+                    if (v){
+                        return Mono.error(new RuntimeException("El cliente personal no puede tener mas de una cuenta bancaria"));
+                    }else{
+                        return this.findAllWithDetail()
+                                .filter( x -> x.getCustomerId().equals(a.getCustomerId())) // Buscamos el customerId de la lista
+                                .filter( x -> (x.getProduct().getIndProduct() == 2 && x.getCustomer().getTypeCustomer() == 1) && (x.getProduct().getId().equals(a.getProductId())) ) // Buscamos si tiene un credito y es cliente personal
+                                .hasElements()
+                                .flatMap( w -> {
+                                   if (w){
+                                       return Mono.error(new RuntimeException("El cliente personal no puede tener mas de un credito"));
+                                   }else{
+                                       return productClient.getProduct(a.getProductId())
+                                               .filter( x -> (x.getIndProduct() == 1) ) // Validar si el producto es PASIVO
+                                               .filter( x -> (x.getTypeProduct() == 1 || x.getTypeProduct() == 3) ) // Validar si es cuenta de ahorros o plazo fijo
+                                               .hasElement()
+                                               .flatMap( zz -> {
+                                                   return customerClient.getCustomer(a.getCustomerId())
+                                                           .filter( (x -> x.getTypeCustomer() == 2) ) // Validar si el customerId es empresarial
+                                                           .hasElement()
+                                                           .flatMap( yy -> {
+                                                               if ( zz != null && yy != null){
+                                                                   return Mono.error(new RuntimeException("El cliente empresarial no puede tener una cuenta de ahorros o plazo fijo"));
+                                                               }else{
+                                                                   return repository.save(a);
+                                                               }
+                                                           });
+                                               });
+                                   }
+                                });
+                    }
+                });
     }
 
     @Override
