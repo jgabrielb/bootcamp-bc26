@@ -35,17 +35,22 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public Mono<Purchase> save(Purchase c) {
         logger.info("Executing save method");
-        return accountClient.getAccountWithDetails(c.getAccountId())
-                .filter( x -> x.getProduct().getIndProduct() == 2 && x.getProduct().getTypeProduct() == 3) // Validar que el producto sea de tipo Activo y que el producto sea de Tarjeta de Crédito
-                .filter(x -> x.getCreditActually().compareTo(c.getPurchaseAmount()) >= 0 ) //validar que el credito actual sea mayor o igual al monto de la compra
-                .hasElement()
-                .flatMap( y -> {
-                    if(y){
-                        return repository.save(c);
-                    }else{
-                        return Mono.error(new RuntimeException("Verificar que sea una tarjeta de crédito y que el monto de la compra no sobre pase el limite del credito"));
-                    }
-                });
+        return Mono.just(c).flatMap(p -> {
+            return accountClient.getAccountWithDetails(p.getAccountId())
+                    .filter( x -> x.getProduct().getIndProduct() == 2) // Validar que el producto sea de tipo Activo
+                    .filter(x -> x.getProduct().getTypeProduct() == 3) // Validar que el producto sea de Tarjeta de Crédito
+                    .flatMap(t -> {
+                        return this.findAllByAccountId(c.getAccountId()).map(s -> s.getPurchaseAmount())
+                                .reduce(new BigDecimal(0), (x1, x2) -> x1.add(x2))
+                                .flatMap(totalPurchase -> {
+                                    if(t.getCreditLimits().compareTo(totalPurchase.add(c.getPurchaseAmount())) > -1) {// Valida que el monto disponible sea mayor o igual al monto por comprar
+                                        return repository.save(c);
+                                    }else{
+                                        return Mono.error(new RuntimeException("No se pudo realizar la compra, verifique su saldo disponible o si el producto es una tarjeta de credito."));
+                                    }
+                                });
+                    });
+        });
     }
 
     @Override
@@ -74,5 +79,11 @@ public class PurchaseServiceImpl implements PurchaseService {
         return repository.findById(id)
                 .flatMap( x -> repository.delete(x)
                         .then(Mono.just(x)));
+    }
+
+    @Override
+    public Flux<Purchase> findAllByAccountId(String id) {
+        logger.info("Executing findAllByAccountId method");
+        return repository.findAll().filter(x -> x.getAccountId().equalsIgnoreCase(id));
     }
 }

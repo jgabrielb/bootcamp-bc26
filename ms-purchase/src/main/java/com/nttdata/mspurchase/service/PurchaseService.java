@@ -14,4 +14,6 @@ public interface PurchaseService {
     Mono<Purchase> update(Purchase c, String id);
 
     Mono<Purchase> delete(String id);
+
+    Flux<Purchase> findAllByAccountId(String id);
 }
