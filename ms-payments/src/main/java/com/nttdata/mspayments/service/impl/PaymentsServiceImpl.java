@@ -41,7 +41,7 @@ public class PaymentsServiceImpl implements PaymentsService {
                     if(y){
                         return repository.save(c);
                     }else{
-                        return Mono.error(new RuntimeException("La cuenta debe ser de crédito"));
+                        return Mono.error(new RuntimeException("La cuenta ingresada no es de tipo credito"));
                     }
                 });
     }

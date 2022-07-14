@@ -36,8 +36,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     public Mono<Purchase> save(Purchase c) {
         logger.info("Executing save method");
         return accountClient.getAccountWithDetails(c.getAccountId())
-                .filter( x -> x.getProduct().getIndProduct() == 2) // Validar que el producto sea de tipo Activo
-                .filter(x -> x.getProduct().getTypeProduct() == 3) // Validar que el producto sea de Tarjeta de Crédito
+                .filter( x -> x.getProduct().getIndProduct() == 2 && x.getProduct().getTypeProduct() == 3) // Validar que el producto sea de tipo Activo y que el producto sea de Tarjeta de Crédito
                 .filter(x -> x.getCreditActually().compareTo(c.getPurchaseAmount()) >= 0 ) //validar que el credito actual sea mayor o igual al monto de la compra
                 .hasElement()
                 .flatMap( y -> {

@@ -1,12 +1,9 @@
 package com.nttdata.msaccounts.service.impl;
 
-import com.nttdata.msaccounts.client.ProductClient;
-import com.nttdata.msaccounts.model.Customer;
-import com.nttdata.msaccounts.model.Product;
+import com.nttdata.msaccounts.client.*;
+import com.nttdata.msaccounts.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import com.nttdata.msaccounts.client.CustomerClient;
-import com.nttdata.msaccounts.model.Account;
 import com.nttdata.msaccounts.repository.AccountRepository;
 import com.nttdata.msaccounts.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -30,6 +31,21 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     ProductClient productClient;
 
+    @Autowired
+    DepositClient depositClient;
+
+    @Autowired
+    WithdrawalClient withdrawalClient;
+
+    @Autowired
+    PaymentClient paymentClient;
+
+    @Autowired
+    PurchaseClient purchaseClient;
+
+    @Autowired
+    SignatoryClient signatoryClient;
+
     @Override
     public Flux<Account> findAll() {
         logger.info("Executing findAll method");
@@ -45,9 +61,33 @@ public class AccountServiceImpl implements AccountService {
                            .flatMapMany( y -> {
                                return productClient.getProduct(x.getProductId())
                                        .flatMapMany( z -> {
-                                           x.setCustomer(y);
-                                           x.setProduct(z);
-                                           return Flux.just(x);
+                                           return depositClient.getDeposits()
+                                                   .filter( val1 -> val1.getAccountId().equals(x.getId()))
+                                                   .collectList()
+                                                   .flatMapMany( w -> {
+                                                       return withdrawalClient.getWithdrawals()
+                                                               .filter( val2 -> val2.getAccountId().equals(x.getId()))
+                                                               .collectList()
+                                                               .flatMapMany( v -> {
+                                                                   return purchaseClient.getPurchases()
+                                                                           .filter( val3 -> val3.getAccountId().equals(x.getId()))
+                                                                           .collectList()
+                                                                           .flatMapMany( t -> {
+                                                                              return paymentClient.getPayments()
+                                                                                      .filter( val4 -> val4.getAccountId().equals(x.getId()))
+                                                                                      .collectList()
+                                                                                      .flatMapMany( o -> {
+                                                                                          return signatoryClient.getSignatories()
+                                                                                                  .filter( val5 -> val5.getAccountId().equals(x.getId()))
+                                                                                                  .collectList()
+                                                                                                  .flatMapMany( p -> {
+                                                                                                      this.setAccountValues(x, y, z, w, v, t, o, p);
+                                                                                                      return Flux.just(x);
+                                                                                                  });
+                                                                                      });
+                                                                           });
+                                                               });
+                                                   });
                                        });
                            });
                 });
@@ -82,7 +122,7 @@ public class AccountServiceImpl implements AccountService {
                                                            .filter( (x -> x.getTypeCustomer() == 2) ) // Validar si el customerId es empresarial
                                                            .hasElement()
                                                            .flatMap( yy -> {
-                                                               if ( zz != null && yy != null){
+                                                               if ( zz && yy){
                                                                    return Mono.error(new RuntimeException("El cliente empresarial no puede tener una cuenta de ahorros o plazo fijo"));
                                                                }else{
                                                                    return repository.save(a);
@@ -110,9 +150,33 @@ public class AccountServiceImpl implements AccountService {
                             .flatMap( y -> {
                                 return productClient.getProduct(x.getProductId())
                                         .flatMap( z -> {
-                                            x.setCustomer(y);
-                                            x.setProduct(z);
-                                            return Mono.just(x);
+                                            return depositClient.getDeposits()
+                                                    .filter( val1 -> val1.getAccountId().equals(x.getId()))
+                                                    .collectList()
+                                                    .flatMap( w -> {
+                                                        return withdrawalClient.getWithdrawals()
+                                                                .filter( val2 -> val2.getAccountId().equals(x.getId()))
+                                                                .collectList()
+                                                                .flatMap( v -> {
+                                                                    return paymentClient.getPayments()
+                                                                            .filter( val3 -> val3.getAccountId().equals(x.getId()))
+                                                                            .collectList()
+                                                                            .flatMap( t -> {
+                                                                               return purchaseClient.getPurchases()
+                                                                                       .filter( val4 -> val4.getAccountId().equals(x.getId()))
+                                                                                       .collectList()
+                                                                                       .flatMap( o -> {
+                                                                                           return signatoryClient.getSignatories()
+                                                                                                   .filter( val5 -> val5.getAccountId().equals(x.getId()))
+                                                                                                   .collectList()
+                                                                                                   .flatMap( p -> {
+                                                                                                       this.setAccountValues(x, y, z, w, v, o, t, p);
+                                                                                                       return Mono.just(x);
+                                                                                                   });
+                                                                                       });
+                                                                            });
+                                                                });
+                                                    });
                                         });
                             });
                 });
@@ -141,6 +205,16 @@ public class AccountServiceImpl implements AccountService {
         return repository.findById(id)
                 .flatMap( x -> repository.delete(x)
                         .then(Mono.just(x)));
+    }
+
+    private void setAccountValues(Account x, Customer y, Product z, List<Deposit> w, List<Withdrawal> v, List<Purchase> t, List<Payment> o, List<Signatories> p) {
+        x.setCustomer(y);
+        x.setProduct(z);
+        x.setDeposits(new ArrayList<>(w));
+        x.setWithdrawals(new ArrayList<>(v));
+        x.setPayments(new ArrayList<>(o));
+        x.setPurchases(new ArrayList<>(t));
+        x.setSignatories(new ArrayList<>(p));
     }
 
 }

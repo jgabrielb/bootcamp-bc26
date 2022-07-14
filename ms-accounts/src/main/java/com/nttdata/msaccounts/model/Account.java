@@ -7,14 +7,14 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
-import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Document(collection = "schema_suscribe.accounts")
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Account {
     @Id
     private String id;
@@ -46,5 +46,20 @@ public class Account {
 
     @Transient
     private Product product;
+
+    @Transient
+    private List<Deposit> deposits;
+
+    @Transient
+    private List<Withdrawal> withdrawals;
+
+    @Transient
+    private List<Payment> payments;
+
+    @Transient
+    private List<Purchase> purchases;
+
+    @Transient
+    private List<Signatories> signatories;
 
 }

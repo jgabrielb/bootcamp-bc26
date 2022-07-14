@@ -3,6 +3,7 @@ package com.nttdata.msaccounts.client;
 import com.nttdata.msaccounts.model.Deposit;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -17,5 +18,15 @@ public class DepositClient {
                 )
                 .retrieve()
                 .bodyToMono(Deposit.class);
+    };
+
+    public Flux<Deposit> getDeposits(){
+        return client.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/findAll")
+                        .build()
+                )
+                .retrieve()
+                .bodyToFlux(Deposit.class);
     };
 }
